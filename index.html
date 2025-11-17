@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Smart Campus — Prototype</title>
+<style>
+  :root{
+    --dark:#505248;
+    --accent:#989c65;
+    --bg:#f8f9f6;
+    --card:#e9ebdf;
+    --muted:#6b6b6b;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;font-family:system-ui,Segoe UI,Roboto,Arial; background:var(--bg); color:#222;
+  }
+  header{
+    background:var(--dark); color:#fff; padding:18px 20px; display:flex; align-items:center; justify-content:space-between;
+  }
+  header h1{margin:0;font-size:18px;letter-spacing:1px}
+
+  .role-switch{display:flex;gap:8px}
+
+  .role-btn{background:#fff1;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:600;color:var(--dark)}
+
+  .role-btn.active{background:var(--accent); color:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.15)}
+
+  main{padding:20px; max-width:1100px; margin:18px auto}
+
+  .layout{display:grid;grid-template-columns:1fr 360px;gap:18px}
+
+  @media(max-width:900px){ .layout{grid-template-columns:1fr} .side {order:2} }
+
+  /* Cards */
+
+  .card{background:var(--card);padding:16px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.06)}
+
+  /* Student form */
+
+  .form-row{display:flex;gap:10px;margin:8px 0}
+
+  .form-row input[type="text"], .form-row select, textarea, .small-input{
+    width:100%; padding:8px;border-radius:6px;border:1px solid #cfcfcf;background:white;
+  }
+
+  textarea{min-height:100px;resize:vertical;padding:10px}
+
+  .btn{background:var(--dark); color:#fff; border:none;padding:10px 12px;border-radius:8px;cursor:pointer;font-weight:600}
+
+  .btn.secondary{background:var(--accent); color:#fff}
+
+  .muted{color:var(--muted); font-size:13px}
+
+  /* preview */
+
+  .preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+
+  .preview img{width:88px;height:120px;object-fit:cover;border-radius:6px;border:1px solid #ddd}
+
+  /* status badges */
+
+  .badge{display:inline-block;padding:6px 8px;border-radius:20px;color:#fff;font-weight:700;font-size:13px}
+
+  .badge.pending{background:#f39c12}
+
+  .badge.inprogress{background:#3498db}
+
+  .badge.completed{background:#2ecc71}
+
+  /* Provider jobs */
+
+  .job{display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:8px;background:#fff;margin-bottom:10px;border:1px solid #eee}
+
+  .job img{width:72px;height:96px;object-fit:cover;border-radius:6px}
+
+  .job h4{margin:0 0 6px 0}
+
+  .job p{margin:0;font-size:13px;color:#444}
+
+  .job .actions{margin-left:auto;display:flex;flex-direction:column;gap:8px}
+
+  .small{font-size:13px}
+
+  /* Admin table */
+
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:8px;text-align:left;border-bottom:1px solid #e6e6e6}
+
+  th{background:transparent;color:#333}
+
+  .stats{display:flex;gap:12px;flex-wrap:wrap}
+
+  .stat-card{flex:1;min-width:150px;padding:12px;border-radius:8px;background:#fff;border:1px solid #eee}
+
+  footer{padding:18px;text-align:center;color:var(--muted);font-size:13px}
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Smart Campus — Hostel Maintenance</h1>
+  <div class="role-switch" aria-hidden>
+    <button class="role-btn active" data-role="student">Student</button>
+    <button class="role-btn" data-role="provider">Provider</button>
+    <button class="role-btn" data-role="admin">Admin</button>
+  </div>
+</header>
+
+<main>
+  <!-- Layout: main content + side panel -->
+  <div class="layout">
+    <section id="main-area">
+      <!-- Student view -->
+      <div id="student-view" class="card view">
+        <h2>Report a Problem</h2>
+        <p class="muted">Describe the issue in English or Hindi. Attach photo for clarity.</p>
+
+        <div style="display:flex;gap:8px;align-items:center;margin:10px 0">
+          <label style="font-weight:700">Language:</label>
+          <button class="btn small-btn" id="lang-en" style="background:#fff;color:var(--dark);border:1px solid #ddd">English</button>
+          <button class="btn small-btn" id="lang-hi" style="background:var(--accent);color:#fff;border:1px solid #989c65">Hindi</button>
+        </div>
+
+        <div style="margin-top:6px">
+          <input id="title" type="text" placeholder="Short title (eg. Bathroom tap broken)" />
+        </div>
+
+        <div style="margin-top:8px">
+          <textarea id="description" placeholder="Describe problem (you can write in EN/HIN)"></textarea>
+        </div>
+
+        <div class="form-row" style="margin-top:8px">
+          <select id="location">
+            <option value="">Select Location — e.g., Hostel A Hostel B, </option>
+            <option>Hostel A - Boys Hostel - First Floor</option>
+            <option>Hostel A - Boys Hostel - Second Floor</option>
+            <option>Hostel A - Boys Hostel - Third Floor</option>
+            <option>Hostel A - Boys Hostel - Fourth Floor</option>
+
+            <option>Hostel B - Girls Hostel - First Floor</option>
+            <option>Hostel B - Girls Hostel - Second Floor</option>
+            <option>Hostel B - Girls Hostel - Third Floor</option>
+            <option>Hostel B - Girls Hostel - Fourth Floor</option>
+
+            <option>Personal Flat</option>
+            <option>GN Group hostel</option>
+            <option>Pg 3</option>
+            <option>Pg 4</option>
+            <option>Pg 5</option>
+            <option>Pg 6</option>
+            <option>Library</option>
+          </select>
+          <input id="distance" class="small-input" type="number" min="0" placeholder="Distance (km) for estimate" />
+        </div>
+
+        <!--drop down menu yehan pe hai related complaint ka(vaibhav ko dikhana hai)-->
+
+        <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+          <input id="parts" type="number" min="0" placeholder="Estimated parts cost (₹)" />
+          <select id="serviceType">
+            <option value="">Select Service</option>
+            <option value="plumber">Plumber</option>
+            <option value="electrician">Electrician</option>
+            <option value="carpenter">Carpenter</option>
+            <option value="mechanic">Mechanic</option>
+
+          </select>
+        </div>
+
+        <div style="margin-top:10px">
+          <label class="muted">Upload photos</label><br>
+          <input id="photos" type="file" accept="image/*" multiple />
+          <div class="preview" id="preview"></div>
+        </div>
+
+        <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+          <button class="btn" id="estimateBtn">Show Estimate</button>
+          <div id="estimateText" class="muted" style="margin-left:8px"></div>
+        </div>
+
+        <div style="margin-top:14px;display:flex;gap:8px">
+          <button class="btn secondary" id="submitComplaint">Submit Complaint</button>
+          <button class="btn" id="clearForm" style="background:#ccc;color:#111">Clear</button>
+        </div>
+      </div>
+
+      <!-- Provider view -->
+      <div id="provider-view" class="card view" style="display:none">
+        <h2>Provider Jobs</h2>
+        <p class="muted">Jobs assigned to you. Accept to start and update ETA/status.</p>
+        <div id="jobsList" style="margin-top:12px"></div>
+      </div>
+
+      <!-- Admin view -->
+      <div id="admin-view" class="card view" style="display:none">
+        <h2>Admin Dashboard</h2>
+        <div class="stats" style="margin-top:10px">
+          <div class="stat-card">
+            <div style="font-size:20px;font-weight:800" id="statTotal">0</div>
+            <div class="muted">Total Complaints</div>
+          </div>
+          <div class="stat-card">
+            <div style="font-size:20px;font-weight:800" id="statPending">0</div>
+            <div class="muted">Pending</div>
+          </div>
+          <div class="stat-card">
+            <div style="font-size:20px;font-weight:800" id="statInProgress">0</div>
+            <div class="muted">In Progress</div>
+          </div>
+          <div class="stat-card">
+            <div style="font-size:20px;font-weight:800" id="statCompleted">0</div>
+            <div class="muted">Completed</div>
+          </div>
+        </div>
+
+        <h3 style="margin-top:14px">Complaint List</h3>
+        <div style="overflow:auto;max-height:420px;margin-top:8px">
+          <table id="complaintsTable">
+            <thead><tr><th>Title</th><th>Service</th><th>Loc</th><th>Est(₹)</th><th>Status</th><th>Assign</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="loginOverlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;z-index:999;">
+        <div style="background:#fff;padding:30px;border-radius:10px;width:300px;text-align:center;box-shadow:0 0 20px rgba(0,0,0,0.3);">
+          <h2>Login</h2>
+          <select id="loginRole" style="width:100%;padding:8px;margin:8px 0;border-radius:6px;border:1px solid #ccc">
+            <option value="">Select Role</option>
+            <option value="student">Student</option>
+            <option value="provider">Provider</option>
+            <option value="admin">Admin</option>
+          </select>
+          <input type="text" id="loginUsername" placeholder="Username" style="width:100%;padding:8px;margin:8px 0;border-radius:6px;border:1px solid #ccc">
+          <input type="password" id="loginPassword" placeholder="Password" style="width:100%;padding:8px;margin:8px 0;border-radius:6px;border:1px solid #ccc">
+          <button onclick="login()" style="width:100%;padding:10px;margin-top:10px;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">Login</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Side panel -->
+    
+    <aside class="side">
+      <div class="card">
+        <h3>Quick Info</h3>
+        <p class="muted">Use this prototype to test complaint flow. All data is local in browser memory.</p>
+        <hr style="border:none;border-top:1px solid #eee;margin:10px 0" />
+        <div>
+          <strong>Legend</strong>
+          <p class="small" style="margin:6px 0"><span class="badge pending">Pending</span> complaint not assigned/accepted</p>
+          <p class="small" style="margin:6px 0"><span class="badge inprogress">In Progress</span> provider accepted and working</p>
+          <p class="small" style="margin:6px 0"><span class="badge completed">Completed</span> job finished</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <h3>Providers </h3>
+        <ul id="providerList" style="padding-left:16px;margin:6px 0"></ul>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<footer>Prototype • Demo data stored in browser memory(temporary)</footer>
+
+<script>
+/* ====== In-memory data ====== */
+let complaints = []; // each: {id,title,desc,loc,service,photos:[dataURL],distance,parts,estimate,status,assignedTo}
+let providers = [
+  {id: 'p1', name:'Ravi - Plumber', service:'plumber'},
+  {id: 'p2', name:'Sunil - Electrician', service:'electrician'},
+  {id: 'p3', name:'Manish - Carpenter', service:'carpenter'}
+];
+let nextId = 1;
+function login(){
+  const role = document.getElementById('loginRole').value;
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value.trim();
+
+  if(!role || !username || !password){
+    alert('Please select role and enter username/password');
+    return;
+  }
+
+  // Simple demo auth
+  if(role==='student' || role==='provider' || role==='admin'){
+    alert('Welcome '+role+'! Dashboard will open.');
+    document.getElementById('loginOverlay').style.display='none';
+
+    // Activate correct role tab
+    roleBtns.forEach(b=>b.classList.remove('active'));
+    document.querySelector('.role-btn[data-role="'+role+'"]').classList.add('active');
+    studentView.style.display = role==='student' ? '' : 'none';
+    providerView.style.display = role==='provider' ? '' : 'none';
+    adminView.style.display = role==='admin' ? '' : 'none';
+    renderAll();
+  } else {
+    alert('Invalid credentials (demo)');
+  }
+}
+
+/* ====== DOM refs ====== */
+
+const roleBtns = document.querySelectorAll('.role-btn');
+const studentView = document.getElementById('student-view');
+const providerView = document.getElementById('provider-view');
+const adminView = document.getElementById('admin-view');
+const preview = document.getElementById('preview');
+const photosInput = document.getElementById('photos');
+const estimateBtn = document.getElementById('estimateBtn');
+const estimateText = document.getElementById('estimateText');
+const submitComplaint = document.getElementById('submitComplaint');
+const jobsList = document.getElementById('jobsList');
+const providerListEl = document.getElementById('providerList');
+const complaintsTableBody = document.querySelector('#complaintsTable tbody');
+const statTotal = document.getElementById('statTotal');
+const statPending = document.getElementById('statPending');
+const statInProgress = document.getElementById('statInProgress');
+const statCompleted = document.getElementById('statCompleted');
+
+/* ====== Role switching ====== */
+
+roleBtns.forEach(b=>{
+  b.addEventListener('click', ()=> {
+    roleBtns.forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    const role = b.dataset.role;
+    studentView.style.display = role==='student' ? '' : 'none';
+    providerView.style.display = role==='provider' ? '' : 'none';
+    adminView.style.display = role==='admin' ? '' : 'none';
+    renderAll();
+  });
+});
+
+/* ====== Provider list display ====== */
+
+function renderProviders(){
+  providerListEl.innerHTML = '';
+  providers.forEach(p=>{
+    const li = document.createElement('li');
+    li.textContent = p.name + ' ('+p.service+')';
+    providerListEl.appendChild(li);
+  });
+}
+
+/* ====== Photo preview ====== */
+
+photosInput.addEventListener('change', async (e)=>{
+  preview.innerHTML = '';
+  const files = Array.from(e.target.files).slice(0,5);
+  for(const f of files){
+    const url = await readFileAsDataURL(f);
+    const img = document.createElement('img');
+    img.src = url;
+    preview.appendChild(img);
+  }
+});
+function readFileAsDataURL(file){
+  return new Promise(res=>{
+    const r = new FileReader();
+    r.onload = ()=>res(r.result);
+    r.readAsDataURL(file);
+  });
+}
+
+/* ====== Estimate ====== */
+
+estimateBtn.addEventListener('click', ()=>{
+  const d = Number(document.getElementById('distance').value || 0);
+  const p = Number(document.getElementById('parts').value || 0);
+  const est = 50 + (d * 10) + p;
+  estimateText.textContent = 'Estimated cost: ₹' + est.toFixed(0);
+});
+
+/* ====== Submit complaint ====== */
+
+submitComplaint.addEventListener('click', async ()=>{
+  const title = document.getElementById('title').value.trim();
+  const desc = document.getElementById('description').value.trim();
+  const loc = document.getElementById('location').value;
+  const service = document.getElementById('serviceType').value;
+  const d = Number(document.getElementById('distance').value || 0);
+  const p = Number(document.getElementById('parts').value || 0);
+
+  if(!title || !desc || !loc || !service){
+    alert('Please fill title, description, location and select service');
+    return;
+  }
+
+  // read images
+
+  const files = Array.from(photosInput.files).slice(0,5);
+  const photos = [];
+  for(const f of files){
+    photos.push(await readFileAsDataURL(f));
+  }
+
+  const estimate = 50 + (d * 10) + p;
+  const comp = {
+    id: 'C' + (nextId++),
+    title, desc, loc, service, photos, distance:d, parts:p, estimate,
+    status:'pending', assignedTo:null, createdAt: new Date().toISOString()
+  };
+  complaints.unshift(comp); // newest first
+  clearStudentForm();
+  renderAll();
+  alert('Complaint submitted. Estimate ≈ ₹' + estimate.toFixed(0));
+});
+
+/* ====== Clear form ====== */
+
+document.getElementById('clearForm').addEventListener('click', clearStudentForm);
+function clearStudentForm(){
+  document.getElementById('title').value='';
+  document.getElementById('description').value='';
+  document.getElementById('location').selectedIndex=0;
+  document.getElementById('serviceType').selectedIndex=0;
+  document.getElementById('distance').value='';
+  document.getElementById('parts').value='';
+  photosInput.value='';
+  preview.innerHTML='';
+  estimateText.textContent='';
+}
+
+/* ====== Render jobs for provider ====== */
+
+function renderJobs(){
+  jobsList.innerHTML = '';
+
+  // show complaints that are assigned to this provider OR unassigned (to simulate discovery)
+
+  complaints.forEach(c=>{
+    const job = document.createElement('div');
+    job.className='job';
+    const img = document.createElement('img');
+    img.src = c.photos[0] || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="120"><rect width="100%" height="100%" fill="%23ddd"/></svg>';
+    const info = document.createElement('div');
+    info.style.flex='1';
+    info.innerHTML = `<h4>${c.title}</h4><p class="muted">${c.service} • ${c.loc}</p><p class="small">Est: ₹${c.estimate} • Status: ${statusBadge(c.status)}</p>`;
+    const actions = document.createElement('div');
+    actions.className='actions';
+    // Accept/Reject if pending
+    if(c.status==='pending'){
+      const accept = document.createElement('button'); accept.className='btn'; accept.textContent='Accept';
+      const reject = document.createElement('button'); reject.className='btn secondary'; reject.textContent='Reject';
+      accept.onclick = ()=>{ assignToProvider(c.id, providers[0].id); /* default provider for demo */ };
+      reject.onclick = ()=>{ updateStatus(c.id, 'cancelled'); };
+      actions.appendChild(accept); actions.appendChild(reject);
+    } else if(c.status==='in_progress'){
+      const etaBtn = document.createElement('button'); etaBtn.className='btn'; etaBtn.textContent='Set ETA / Complete';
+      etaBtn.onclick = ()=> {
+        const eta = prompt('Enter ETA in minutes (or leave blank)'); 
+        if(eta !== null){
+          // if already in progress, allow marking complete
+          const mark = confirm('Mark as completed now? (OK to complete, Cancel otherwise)');
+          if(mark) updateStatus(c.id,'completed');
+        }
+      };
+      actions.appendChild(etaBtn);
+    } else {
+      const span = document.createElement('div'); span.className='muted'; span.textContent='No actions';
+      actions.appendChild(span);
+    }
+
+    job.appendChild(img); job.appendChild(info); job.appendChild(actions);
+    jobsList.appendChild(job);
+  });
+}
+
+/* ====== Assign & status updates (Admin / Provider actions) ====== */
+
+function assignToProvider(complaintId, providerId){
+  const c = complaints.find(x=>x.id===complaintId);
+  if(!c) return;
+  c.assignedTo = providerId;
+  c.status = 'in_progress';
+  renderAll();
+  alert('Assigned and accepted by provider.');
+}
+function updateStatus(complaintId, status){
+  const c = complaints.find(x=>x.id===complaintId);
+  if(!c) return;
+  c.status = status;
+  if(status==='completed') c.completedAt = new Date().toISOString();
+  renderAll();
+}
+
+/* ====== Admin table rendering ====== */
+
+function renderAdminTable(){
+  complaintsTableBody.innerHTML = '';
+  complaints.forEach(c=>{
+    const tr = document.createElement('tr');
+    const assignSelect = document.createElement('select');
+    const emptyOpt = document.createElement('option'); emptyOpt.textContent = 'Unassigned'; assignSelect.appendChild(emptyOpt);
+    providers.forEach(p=>{
+      const o = document.createElement('option'); o.value = p.id; o.textContent = p.name; if(c.assignedTo===p.id) o.selected=true;
+      assignSelect.appendChild(o);
+    });
+    assignSelect.onchange = (e)=>{ c.assignedTo = e.target.value || null; if(c.assignedTo) c.status='in_progress'; renderAll(); };
+
+    tr.innerHTML = `<td>${c.title}</td><td>${c.service}</td><td>${c.loc}</td><td>₹${c.estimate}</td><td>${c.status}</td>`;
+    const tdAssign = document.createElement('td');
+    tdAssign.appendChild(assignSelect);
+    tr.appendChild(tdAssign);
+    complaintsTableBody.appendChild(tr);
+  });
+}
+
+/* ====== Stats ====== */
+
+function renderStats(){
+  statTotal.textContent = complaints.length;
+  statPending.textContent = complaints.filter(c=>c.status==='pending').length;
+  statInProgress.textContent = complaints.filter(c=>c.status==='in_progress').length;
+  statCompleted.textContent = complaints.filter(c=>c.status==='completed').length;
+}
+
+/* ====== Helper: status badge text ====== */
+
+function statusBadge(s){
+  if(s==='pending') return 'Pending';
+  if(s==='in_progress') return 'In Progress';
+  if(s==='completed') return 'Completed';
+  return s;
+}
+
+/* ====== Render all views ====== */
+
+function renderAll(){
+  renderProviders();
+  renderJobs();
+  renderAdminTable();
+  renderStats();
+}
+
+/* ====== Seed some demo complaints ====== */
+
+(function seedDemo(){
+  complaints = [
+    { id:'C0', title:'Bathroom tap broken', desc:'Tap is leaking', loc:'Hostel A - Block 1 - Room 101', service:'plumber', photos:[], distance:1, parts:50, estimate:110, status:'pending', assignedTo:null },
+    { id:'C-1', title:'Ceiling fan not working', desc:'Fan stopped', loc:'Hostel A - Block 2 - Room 210', service:'electrician', photos:[], distance:0, parts:0, estimate:50, status:'in_progress', assignedTo:'p2' }
+  ];
+  nextId = 2;
+  renderAll();
+})();
+
+</script>
+</body>
+</html>
